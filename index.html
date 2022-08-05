@@ -2,9 +2,25 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
+    <link rel="icon" href="/<%- favicon %>" />
+
+    <!-- https://stackoverflow.com/questions/2989263/disable-auto-zoom-in-input-text-tag-safari-on-iphone -->
+    <!-- https://konvajs.org/docs/performance/All_Performance_Tips.html  -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <!-- https://developers.facebook.com/docs/sharing/webmasters/ -->
+    <meta property="og:type"               content="website" />
+    <meta property="og:title"              content="<%- title %>" />
+    <meta property="og:description"        content="<%- description %>" />
+    <meta property="og:image"              content="<%= BASE_URL %>/preview-image.png" />
+
+    <title><%- title %></title>
+    <meta name="description" content="<%- description %>">
+    <meta name="keywords" content="Algorithm, Pathfinding, A*">
+    <meta name="author" content="Elliott Zwertvaegher">
   </head>
   <body>
     <div id="app"></div>

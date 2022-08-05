@@ -10,8 +10,11 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@vueuse/core": "^9.0.2",
     "element-plus": "^2.2.12",
+    "lodash": "^4.17.21",
     "pinia": "^2.0.16",
+    "sass": "^1.54.2",
     "vue": "^3.2.37",
     "vue-router": "^4.1.2"
   },
@@ -30,6 +33,8 @@
     "unplugin-auto-import": "^0.10.3",
     "unplugin-vue-components": "^0.21.2",
     "vite": "^3.0.1",
+    "vite-plugin-html": "^3.2.0",
+    "vite-svg-loader": "^3.4.0",
     "vue-tsc": "^0.38.8"
   }
 }

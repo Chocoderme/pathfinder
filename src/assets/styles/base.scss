@@ -1,0 +1,26 @@
+@use "sass:map";
+
+body {
+  min-height: 100vh;
+  overflow: hidden;
+  font-family: "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans",
+    "Droid Sans", "Helvetica Neue", sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  color: #313340;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: white;
+}
+
+// https://caniuse.com/?search=overscroll-behavior-y
+html,
+body {
+  overscroll-behavior: none;
+}
+
+* {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
