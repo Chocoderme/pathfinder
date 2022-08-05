@@ -6,7 +6,9 @@ export type AStarOptions = {
   horizontalCost?: number; // default 1;
   verticalCost?: number; // default: 1;
   diagonalCost?: number; // default: 1;
+  jumpCost?: number; // default: 1;
   canDiagonal?: boolean; // default: true;
+  canJump?: boolean; // default: true;
 };
 type AStartBuiltOptions = {
   [key in keyof AStarOptions]-?: AStarOptions[key];
@@ -23,8 +25,10 @@ type ANode = {
 function buildOptions(options?: AStarOptions): AStartBuiltOptions {
   return {
     canDiagonal: options?.canDiagonal ?? true,
+    canJump: options?.canJump ?? true,
     horizontalCost: options?.horizontalCost ?? 1,
     verticalCost: options?.verticalCost ?? 1,
+    jumpCost: options?.jumpCost ?? 1,
     diagonalCost: options?.diagonalCost ?? 1,
   };
 }
@@ -138,6 +142,31 @@ function findNeighboors(
     }
   }
 
+  // Check for holes
+  if (opts.canJump) {
+    for (const neighboor of neighboors) {
+      if (grid[neighboor.y][neighboor.x][0] === CellType.HOLE) {
+        // JUMP LOGIC
+        const directionX = neighboor.x - parent.x;
+        const directionY = neighboor.y - parent.y;
+        const jumpX = neighboor.x + directionX;
+        const jumpY = neighboor.y + directionY;
+        if (jumpX < 0 || jumpY < 0) continue;
+        if (jumpX >= gridMaxX || jumpY >= gridMaxY) continue;
+        neighboors.push({
+          x: jumpX,
+          y: jumpY,
+          cameFrom: neighboor,
+          gScore: neighboor.gScore + opts.jumpCost,
+          fScore:
+            neighboor.gScore +
+            opts.jumpCost +
+            h(grid, { x: jumpX, y: jumpY }, opts),
+        });
+      }
+    }
+  }
+
   return neighboors;
 }
 
@@ -217,6 +246,7 @@ function next(
     for (const neighboor of neighboors) {
       if (grid[neighboor.y][neighboor.x][0] === CellType.START) continue;
       if (grid[neighboor.y][neighboor.x][0] === CellType.WALL) continue;
+      if (grid[neighboor.y][neighboor.x][0] === CellType.HOLE) continue;
       const existingNeigboor = openNodes.find(
         (n) => n.x === neighboor.x && n.y === neighboor.y
       );
