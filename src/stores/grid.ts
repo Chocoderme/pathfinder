@@ -7,6 +7,7 @@ export const useGridStore = defineStore({
   state: () => ({
     grid: undefined as undefined | Grid,
     canPlace: true,
+    placing: CellType.START,
   }),
   getters: {
     rowSize(state) {
@@ -20,15 +21,17 @@ export const useGridStore = defineStore({
         return state.grid?.[y]?.[x];
       };
     },
-    hasStart(state) {
-      return state.grid?.some((row) =>
-        row.some((col) => col[0] === CellType.START)
-      );
+    start(state): Cell | undefined {
+      return state.grid?.flat(1)?.find((c) => c[0] === CellType.START);
     },
-    hasEnd(state) {
-      return state.grid?.some((row) =>
-        row.some((col) => col[0] === CellType.END)
-      );
+    end(state): Cell | undefined {
+      return state.grid?.flat(1)?.find((c) => c[0] === CellType.END);
+    },
+    hasStart(): boolean {
+      return this.start !== undefined;
+    },
+    hasEnd(): boolean {
+      return this.end !== undefined;
     },
   },
   actions: {
@@ -41,7 +44,7 @@ export const useGridStore = defineStore({
       for (let x = 0; x < columnSize; x++) {
         const row: Cell[] = [];
         for (let y = 0; y < rowSize; y++) {
-          row.push([CellType.DEFAULT, CellState.DEFAULT]);
+          row.push([CellType.GROUND, CellState.DEFAULT]);
         }
         grid.push(row);
       }

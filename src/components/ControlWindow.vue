@@ -5,22 +5,53 @@
 </template>
 
 <script lang="ts" setup>
-  const controlWindowRef = ref<HTMLDivElement | undefined>();
-  const { style } = useDraggable(controlWindowRef, {
-    initialValue: { x: 40, y: 30 },
+const props = defineProps<{
+  storageKey?: string;
+  offset?: { x?: number; y?: number };
+}>();
+const { offset, storageKey } = toRefs(props);
+const initialPosition = {
+  x: 40 + (offset?.value?.x ?? 0),
+  y: 30 + (offset?.value?.y ?? 0),
+};
+
+if (
+  window.localStorage &&
+  storageKey?.value &&
+  window.localStorage.getItem(storageKey.value)
+) {
+  const val = JSON.parse(
+    window.localStorage.getItem(storageKey!.value!) ??
+      JSON.stringify(initialPosition)
+  );
+  initialPosition.x = val.x ?? 0;
+  initialPosition.y = val.y ?? 0;
+}
+
+const controlWindowRef = ref<HTMLDivElement | undefined>();
+const { style, x, y } = useDraggable(controlWindowRef, {
+  initialValue: initialPosition,
+});
+
+if (window.localStorage && storageKey?.value) {
+  watch([x, y], () => {
+    window.localStorage.setItem(
+      storageKey!.value!,
+      JSON.stringify({ x: x.value, y: y.value })
+    );
   });
+}
 </script>
 
 <style lang="scss" scoped>
-  .control-window {
-    position: fixed;
-    top: 30px;
-    left: 40px;
-    padding: 20px;
-    border-radius: 5px;
-    background: whitesmoke;
-    border: 1px solid black;
-    cursor: move;
-    width: 250px;
-  }
+.control-window {
+  position: fixed;
+  top: 30px;
+  left: 40px;
+  padding: 10px;
+  border-radius: 5px;
+  background: whitesmoke;
+  border: 1px solid black;
+  cursor: move;
+}
 </style>

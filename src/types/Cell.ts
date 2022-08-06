@@ -1,14 +1,15 @@
 export enum CellState {
   DEFAULT = "default-state",
   EXPLORING = "exploring-state",
+  EXPLORING_NEXT = "exploring-next-state",
   EXPLORED = "explored-state",
   SELECTED = "selected-state",
 }
 export enum CellType {
-  DEFAULT = "default",
+  GROUND = "ground",
   START = "start",
   END = "end",
   WALL = "wall",
-  HOLE = "hole",
+  WATER = "water",
 }
 export type Cell = [CellType, CellState];

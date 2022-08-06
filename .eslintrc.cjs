@@ -8,5 +8,9 @@ module.exports = {
     "eslint:recommended",
     "@vue/eslint-config-typescript/recommended",
     "@vue/eslint-config-prettier",
+    "./.eslintrc-auto-import.json",
   ],
+  rules: {
+    "linebreak-style": "windows",
+  },
 };

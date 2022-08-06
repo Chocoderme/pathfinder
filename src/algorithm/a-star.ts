@@ -144,8 +144,9 @@ function findNeighboors(
 
   // Check for holes
   if (opts.canJump) {
+    const jumps: ANode[] = [];
     for (const neighboor of neighboors) {
-      if (grid[neighboor.y][neighboor.x][0] === CellType.HOLE) {
+      if (grid[neighboor.y][neighboor.x][0] === CellType.WATER) {
         // JUMP LOGIC
         const directionX = neighboor.x - parent.x;
         const directionY = neighboor.y - parent.y;
@@ -153,7 +154,7 @@ function findNeighboors(
         const jumpY = neighboor.y + directionY;
         if (jumpX < 0 || jumpY < 0) continue;
         if (jumpX >= gridMaxX || jumpY >= gridMaxY) continue;
-        neighboors.push({
+        jumps.push({
           x: jumpX,
           y: jumpY,
           cameFrom: neighboor,
@@ -165,6 +166,7 @@ function findNeighboors(
         });
       }
     }
+    neighboors.push(...jumps);
   }
 
   return neighboors;
@@ -205,7 +207,12 @@ function next(
   } else {
     // Process closest node in openNodes
     const cheapestNode = openNodes.reduce(
-      (a, b) => (a.fScore < b.fScore ? a : b),
+      (a, b) => {
+        if (a.fScore === b.fScore) {
+          return a.gScore < b.gScore ? a : b;
+        }
+        return a.fScore < b.fScore ? a : b;
+      },
       {
         cameFrom: undefined,
         x: 0,
@@ -246,7 +253,7 @@ function next(
     for (const neighboor of neighboors) {
       if (grid[neighboor.y][neighboor.x][0] === CellType.START) continue;
       if (grid[neighboor.y][neighboor.x][0] === CellType.WALL) continue;
-      if (grid[neighboor.y][neighboor.x][0] === CellType.HOLE) continue;
+      if (grid[neighboor.y][neighboor.x][0] === CellType.WATER) continue;
       const existingNeigboor = openNodes.find(
         (n) => n.x === neighboor.x && n.y === neighboor.y
       );
@@ -270,6 +277,25 @@ function next(
         existingNeigboor.gScore = neighboor.gScore;
       }
     }
+  }
+
+  const nextCheapestNode = openNodes.reduce(
+    (a, b) => {
+      if (a.fScore === b.fScore) {
+        return a.gScore < b.gScore ? a : b;
+      }
+      return a.fScore < b.fScore ? a : b;
+    },
+    {
+      cameFrom: undefined,
+      x: 0,
+      y: 0,
+      fScore: Number.POSITIVE_INFINITY,
+      gScore: Number.POSITIVE_INFINITY,
+    }
+  );
+  if (nextCheapestNode) {
+    grid[nextCheapestNode.y][nextCheapestNode.x][1] = CellState.EXPLORING_NEXT;
   }
 
   return true;
@@ -304,6 +330,7 @@ export const useAStar = (grid: Grid, options?: AStarOptions) => {
     if (!prev) return undefined;
     _grid = prev.grid;
     openNodes = prev.openNodes;
+    visitedNodes = prev.visitedNodes;
     finished = false;
     return cloneDeep(_grid);
   };
