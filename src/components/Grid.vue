@@ -81,7 +81,6 @@
       }
     }
   };
-  onMounted(() => loadGrid());
 
   const handleRightClick = (ev: MouseEvent, x: number, y: number) => {
     ev.preventDefault();
@@ -117,9 +116,11 @@
     gridStore.placing = gridStore.cell(x, y)?.[0] ?? gridStore.placing;
   };
 
-  const handlePointerUp = (ev: PointerEvent) => {
-    ev.preventDefault();
-    ev.stopPropagation();
+  const handlePointerUp = (ev?: PointerEvent) => {
+    if (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
     isPointerDown.value = false;
     if (oldTile.value !== undefined) {
       gridStore.placing = oldTile.value;
@@ -127,8 +128,11 @@
     }
     gridHistory.commit();
     saveGrid();
+    lastPointerEnterPos.x = -1;
+    lastPointerEnterPos.y = -1;
   };
 
+  const lastPointerEnterPos = reactive({ x: -1, y: -1 });
   const handlePointerEnter = (x: number, y: number) => {
     mouseGridCoordinates.value = { x, y };
     if (!isPointerDown.value) return;
@@ -138,6 +142,48 @@
     )
       return;
     changeCellType(x, y);
+    // Draw a line between two points
+    if (
+      lastPointerEnterPos.x !== -1 &&
+      lastPointerEnterPos.y !== -1 &&
+      (lastPointerEnterPos.x !== x || lastPointerEnterPos.y !== y) &&
+      // Don't do anything if points are too close
+      Math.abs(lastPointerEnterPos.y - y) +
+        Math.abs(lastPointerEnterPos.x - x) >
+        1
+    ) {
+      if (lastPointerEnterPos.x - x === 0) {
+        // Vertical line
+        const start = Math.min(lastPointerEnterPos.y, y);
+        const end = Math.max(lastPointerEnterPos.y, y);
+        for (let j = start; j < end; j++) {
+          changeCellType(x, j);
+        }
+      } else if (lastPointerEnterPos.y - y === 0) {
+        // Horizontal line
+        const start = Math.min(lastPointerEnterPos.x, x);
+        const end = Math.max(lastPointerEnterPos.x, x);
+        for (let j = start; j < end; j++) {
+          changeCellType(j, y);
+        }
+      } else {
+        const slope = (lastPointerEnterPos.y - y) / (lastPointerEnterPos.x - x);
+        const b = y - slope * x;
+        const startX = Math.min(lastPointerEnterPos.x, x);
+        const endX = Math.max(lastPointerEnterPos.x, x);
+        const startY = Math.min(lastPointerEnterPos.y, y);
+        const endY = Math.max(lastPointerEnterPos.y, y);
+        for (let j = startY; j <= endY; j += 0.1) {
+          for (let i = startX; i <= endX; i += 0.1) {
+            if (Math.round(j) === Math.round(slope * i + b)) {
+              changeCellType(Math.round(i), Math.round(j));
+            }
+          }
+        }
+      }
+    }
+    lastPointerEnterPos.x = x;
+    lastPointerEnterPos.y = y;
   };
 
   const changeCellType = (x: number, y: number, type?: CellType) => {
@@ -209,6 +255,11 @@
     ev.preventDefault();
     ev.stopPropagation();
   });
+  const hasLeft = usePageLeave();
+  whenever(hasLeft, () => handlePointerUp(undefined));
+
+  // Lyfecycles
+  onMounted(() => loadGrid());
 </script>
 
 <style lang="scss" scoped>
