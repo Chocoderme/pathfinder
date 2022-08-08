@@ -157,6 +157,11 @@
         const start = Math.min(lastPointerEnterPos.y, y);
         const end = Math.max(lastPointerEnterPos.y, y);
         for (let j = start; j < end; j++) {
+          if (
+            gridStore.cell(x, j)?.[0] === CellType.START ||
+            gridStore.cell(x, j)?.[0] === CellType.END
+          )
+            continue;
           changeCellType(x, j);
         }
       } else if (lastPointerEnterPos.y - y === 0) {
@@ -164,6 +169,11 @@
         const start = Math.min(lastPointerEnterPos.x, x);
         const end = Math.max(lastPointerEnterPos.x, x);
         for (let j = start; j < end; j++) {
+          if (
+            gridStore.cell(j, y)?.[0] === CellType.START ||
+            gridStore.cell(j, y)?.[0] === CellType.END
+          )
+            continue;
           changeCellType(j, y);
         }
       } else {
@@ -176,6 +186,13 @@
         for (let j = startY; j <= endY; j += 0.1) {
           for (let i = startX; i <= endX; i += 0.1) {
             if (Math.round(j) === Math.round(slope * i + b)) {
+              if (
+                gridStore.cell(Math.round(i), Math.round(j))?.[0] ===
+                  CellType.START ||
+                gridStore.cell(Math.round(i), Math.round(j))?.[0] ===
+                  CellType.END
+              )
+                continue;
               changeCellType(Math.round(i), Math.round(j));
             }
           }
