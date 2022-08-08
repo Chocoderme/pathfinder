@@ -11,10 +11,10 @@ export const useGridStore = defineStore({
   }),
   getters: {
     rowSize(state) {
-      return state.grid?.length ?? 0;
+      return state.grid?.[0]?.length ?? 0;
     },
     columnSize(state) {
-      return state.grid?.[0]?.length ?? 0;
+      return state.grid?.length ?? 0;
     },
     cell(state) {
       return (x: number, y: number) => {
@@ -52,6 +52,7 @@ export const useGridStore = defineStore({
     },
     resetGrid() {
       this.createGrid(this.rowSize, this.columnSize);
+      this.placing = CellType.START;
     },
   },
 });

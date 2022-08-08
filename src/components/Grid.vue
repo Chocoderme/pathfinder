@@ -1,14 +1,19 @@
 <template>
   <div class="grid">
-    <div class="row" v-for="(row, y) of gridStore.grid" :key="y">
+    <div
+      class="row"
+      v-for="(row, y) of gridStore.grid"
+      :key="y"
+      :style="{ height: `${cellSize}px` }"
+    >
       <div
         class="cell"
         v-for="(cell, x) of row"
         :key="x"
         :class="{ [cell[0]]: true, [cell[1]]: true }"
+        :style="{ height: `${cellSize}px`, width: `${cellSize}px` }"
         @pointerdown="handlePointerDown($event, x, y)"
         @pointerup="handlePointerUp"
-        @pointerenter="handlePointerEnter($event, x, y)"
         @contextmenu="handleRightClick($event, x, y)"
       ></div>
     </div>
@@ -21,13 +26,14 @@
 <script lang="ts" setup>
   import { useGridStore } from "@/stores/grid";
   import { type CellState, CellType, type Cell } from "@/types/Cell.js";
+  import type { Grid } from "@/types/Grid";
   import { cloneDeep } from "lodash";
   import { storeToRefs } from "pinia";
 
   const gridStore = useGridStore();
-  const cellSize = 30;
-  const rowSize = Math.floor(window.innerWidth / cellSize);
-  const colSize = Math.floor(window.innerHeight / cellSize);
+  const cellSize = 25;
+  const rowSize = Math.ceil(window.innerWidth / cellSize);
+  const colSize = Math.ceil(window.innerHeight / cellSize);
   gridStore.createGrid(rowSize, colSize);
 
   const { grid: gridRef } = storeToRefs(gridStore);
@@ -52,6 +58,30 @@
     if (type === CellType.WALL) return CellType.WATER;
     return CellType.GROUND;
   };
+
+  const saveGrid = useDebounceFn(
+    () => {
+      if (!window.localStorage) return;
+      window.localStorage.setItem("grid", JSON.stringify(gridRef.value));
+    },
+    1000,
+    { maxWait: 10000 }
+  );
+
+  const loadGrid = () => {
+    if (!window.localStorage) return;
+    const savedGrid = window.localStorage.getItem("grid");
+    if (!savedGrid) return;
+    const parsedGrid = JSON.parse(savedGrid) as Grid;
+    for (let i = 0; i < parsedGrid.length; i++) {
+      if ((gridStore.grid?.length ?? 0) - 1 <= i) break;
+      for (let j = 0; j < parsedGrid[i].length; j++) {
+        if ((gridStore.grid?.[i].length ?? 0) - 1 <= j) continue;
+        gridStore.grid![i][j][0] = parsedGrid[i][j][0];
+      }
+    }
+  };
+  onMounted(() => loadGrid());
 
   const handleRightClick = (ev: MouseEvent, x: number, y: number) => {
     ev.preventDefault();
@@ -96,11 +126,10 @@
       oldTile.value = undefined;
     }
     gridHistory.commit();
+    saveGrid();
   };
 
-  const handlePointerEnter = (ev: PointerEvent, x: number, y: number) => {
-    ev.preventDefault();
-    ev.stopPropagation();
+  const handlePointerEnter = (x: number, y: number) => {
     mouseGridCoordinates.value = { x, y };
     if (!isPointerDown.value) return;
     if (
@@ -127,10 +156,16 @@
     cell[0] = t;
   };
 
-  const { shift, meta, ctrl, y, z } = useMagicKeys({
+  const { shift, meta, ctrl, y, z, s, l, r } = useMagicKeys({
+    passive: false,
     onEventFired(e) {
       if (
-        (e.key === "z" || e.key === "y" || e.key === "meta") &&
+        (e.key === "z" ||
+          e.key === "y" ||
+          e.key === "meta" ||
+          e.key === "l" ||
+          e.key === "r" ||
+          e.key === "s") &&
         e.type === "keydown"
       ) {
         e.preventDefault();
@@ -138,6 +173,7 @@
     },
   });
 
+  // Watchers
   whenever(z, () => {
     if (!meta.value && !ctrl.value) return;
     if (shift.value && gridHistory.canRedo.value && gridStore.canPlace)
@@ -148,6 +184,30 @@
   whenever(y, () => {
     if (!meta.value && !ctrl.value) return;
     if (gridHistory.canRedo.value && gridStore.canPlace) gridHistory.redo();
+  });
+  whenever(s, () => {
+    if (!meta.value && !ctrl.value) return;
+    saveGrid();
+  });
+  whenever(l, () => {
+    if (!meta.value && !ctrl.value) return;
+    if (!gridStore.canPlace) return;
+    loadGrid();
+  });
+  whenever(r, () => {
+    if (!meta.value && !ctrl.value) return;
+    if (!gridStore.canPlace) return;
+    gridStore.resetGrid();
+  });
+
+  // Event listeners
+  useEventListener("pointermove", (ev) => {
+    // if (!isPointerDown.value) return;
+    const x = Math.floor(ev.clientX / cellSize);
+    const y = Math.floor(ev.clientY / cellSize);
+    handlePointerEnter(x, y);
+    ev.preventDefault();
+    ev.stopPropagation();
   });
 </script>
 
@@ -174,13 +234,10 @@
     }
 
     .row {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      justify-content: stretch;
-      align-items: stretch;
+      display: block;
+      overflow: hidden;
+      white-space: nowrap;
       width: 100%;
-      height: 100%;
 
       &:first-child > * {
         border-top: none;
@@ -188,13 +245,15 @@
     }
     .cell {
       box-sizing: border-box;
-      border-left: 1px solid black;
-      border-top: 1px solid black;
+      border-left: 1px solid #b4b4b4;
+      border-top: 1px solid #b4b4b4;
       background-color: transparent;
-      display: block;
+      display: inline-block;
       aspect-ratio: 1;
-      flex: 1 1;
+      flex: 0 0;
       cursor: pointer;
+      user-select: none;
+      touch-action: none;
       transition: transform 0.1s ease-in-out;
 
       &:first-child {
@@ -242,6 +301,12 @@
         &.selected-state,
         &.exploring-next-state {
           background-color: #00a8ff;
+        }
+        &.exploring-state {
+          background-color: #6d77b5;
+        }
+        &.explored-state {
+          background-color: #3e478e;
         }
       }
     }

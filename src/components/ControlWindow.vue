@@ -1,6 +1,8 @@
 <template>
   <div ref="controlWindowRef" :style="style" class="control-window">
-    <slot />
+    <div>
+      <slot />
+    </div>
   </div>
 </template>
 
@@ -29,13 +31,14 @@
   }
 
   const controlWindowRef = ref<HTMLDivElement | undefined>();
-  const { style, x, y, isDragging } = useDraggable(controlWindowRef, {
+  const { style, x, y } = useDraggable(controlWindowRef, {
     initialValue: {
       x: Math.min(window.innerWidth - 200, initialPosition.x),
       y: Math.min(window.innerHeight - 100, initialPosition.y),
     },
     preventDefault: true,
     stopPropagation: true,
+    exact: true,
   });
 
   if (window.localStorage && storageKey?.value) {
@@ -55,12 +58,18 @@
     left: 40px;
     padding: 10px;
     border-radius: 5px;
-    background: whitesmoke;
-    border: 1px solid black;
+    background: #f0f0f0;
+    border: 1px solid #b4b4b4;
     cursor: move;
     pointer-events: initial;
     user-select: none;
     touch-action: none;
     z-index: 10;
+
+    div {
+      cursor: initial;
+      background-color: whitesmoke;
+      border-radius: 6px;
+    }
   }
 </style>

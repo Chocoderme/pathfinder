@@ -9,6 +9,8 @@ export type AStarOptions = {
   jumpCost?: number; // default: 1;
   canDiagonal?: boolean; // default: true;
   canJump?: boolean; // default: true;
+  swimCost?: number; // default: 2;
+  canSwim?: boolean; // default: false;
 };
 type AStartBuiltOptions = {
   [key in keyof AStarOptions]-?: AStarOptions[key];
@@ -30,6 +32,8 @@ function buildOptions(options?: AStarOptions): AStartBuiltOptions {
     verticalCost: options?.verticalCost ?? 1,
     jumpCost: options?.jumpCost ?? 1,
     diagonalCost: options?.diagonalCost ?? 1,
+    swimCost: options?.swimCost ?? 2,
+    canSwim: options?.canSwim ?? false,
   };
 }
 
@@ -143,7 +147,7 @@ function findNeighboors(
   }
 
   // Check for holes
-  if (opts.canJump) {
+  if (opts.canJump && grid[parent.y][parent.x][0] !== CellType.WATER) {
     const jumps: ANode[] = [];
     for (const neighboor of neighboors) {
       if (grid[neighboor.y][neighboor.x][0] === CellType.WATER) {
@@ -253,7 +257,11 @@ function next(
     for (const neighboor of neighboors) {
       if (grid[neighboor.y][neighboor.x][0] === CellType.START) continue;
       if (grid[neighboor.y][neighboor.x][0] === CellType.WALL) continue;
-      if (grid[neighboor.y][neighboor.x][0] === CellType.WATER) continue;
+      if (grid[neighboor.y][neighboor.x][0] === CellType.WATER) {
+        if (!opts.canSwim) continue;
+        neighboor.gScore += opts.swimCost;
+        neighboor.fScore += opts.swimCost;
+      }
       const existingNeigboor = openNodes.find(
         (n) => n.x === neighboor.x && n.y === neighboor.y
       );
