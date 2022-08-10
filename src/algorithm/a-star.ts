@@ -137,10 +137,10 @@ function findNeighboors(
         x: pos.x,
         y: pos.y,
         cameFrom: parent,
-        gScore: parent.gScore + opts.verticalCost,
+        gScore: parent.gScore + opts.diagonalCost,
         fScore:
           parent.gScore +
-          opts.verticalCost +
+          opts.diagonalCost +
           h(grid, { x: pos.x, y: pos.y }, opts),
       });
     }
@@ -360,11 +360,13 @@ export const useAStar = (grid: Grid, options?: AStarOptions) => {
     return cloneDeep(_grid);
   };
 
-  const _solve = () => {
-    while (finished !== true) {
-      _next();
-    }
-    return cloneDeep(_grid);
+  const _solve = async () => {
+    return new Promise<Grid>((resolve) => {
+      while (finished !== true) {
+        _next();
+      }
+      resolve(cloneDeep(_grid));
+    });
   };
 
   return {
