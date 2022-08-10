@@ -14,13 +14,13 @@
 </template>
 
 <style lang="scss" scoped>
-  main {
-    position: absolute;
-    inset: 0;
-  }
+main {
+  position: absolute;
+  inset: 0;
+}
 
-  .pathfinder {
-    width: 100dvw;
-    height: 100dvh;
-  }
+.pathfinder {
+  width: 100dvw;
+  height: 100dvh;
+}
 </style>

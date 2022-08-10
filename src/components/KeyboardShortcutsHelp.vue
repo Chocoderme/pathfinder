@@ -101,77 +101,77 @@
 </template>
 
 <script lang="ts" setup>
-  import { QuestionFilled } from "@element-plus/icons-vue";
+import { QuestionFilled } from "@element-plus/icons-vue";
 
-  const dialogVisible = ref(false);
+const dialogVisible = ref(false);
 
-  const keys = useMagicKeys({
-    passive: false,
-    onEventFired(e) {
-      console.log(e.key, e.type, e.ctrlKey);
-      if (e.key === "/" && e.type === "keydown" && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        dialogVisible.value = true;
-      }
-    },
-  });
+useMagicKeys({
+  passive: false,
+  onEventFired(e) {
+    console.log(e.key, e.type, e.ctrlKey);
+    if (e.key === "/" && e.type === "keydown" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      dialogVisible.value = true;
+    }
+  },
+});
 </script>
 
 <style lang="scss" scoped>
-  .keyboard-shortcuts-help {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    cursor: pointer;
-  }
+.keyboard-shortcuts-help {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+}
 </style>
 <style lang="scss">
-  .keyboard-shortcuts-help-dialog {
-    border-radius: 12px;
-    .el-dialog__body {
-      padding: 20px;
+.keyboard-shortcuts-help-dialog {
+  border-radius: 12px;
+  .el-dialog__body {
+    padding: 20px;
+  }
+
+  .el-divider {
+    margin: 5px 0;
+  }
+
+  .shortcuts {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    color: rgb(96, 98, 102);
+
+    .key {
+      display: inline-block;
+      padding: 5px 10px;
+      border: 1px solid #888;
+      border-radius: 3px;
+      text-transform: capitalize;
     }
 
-    .el-divider {
-      margin: 5px 0;
-    }
-
-    .shortcuts {
-      list-style: none;
-      padding: 0;
+    .shortcut {
       display: flex;
-      flex-direction: column;
-      gap: 20px;
-      color: rgb(96, 98, 102);
+      flex-direction: row;
+      gap: 30px;
+      justify-content: space-between;
+      align-items: center;
 
-      .key {
-        display: inline-block;
-        padding: 5px 10px;
-        border: 1px solid #888;
-        border-radius: 3px;
-        text-transform: capitalize;
-      }
-
-      .shortcut {
+      & > .keys {
         display: flex;
-        flex-direction: row;
-        gap: 30px;
-        justify-content: space-between;
-        align-items: center;
-
-        & > .keys {
-          display: flex;
-          flex-direction: column;
-          gap: 5px;
-          justify-content: flex-start;
-          align-items: flex-start;
-        }
+        flex-direction: column;
+        gap: 5px;
+        justify-content: flex-start;
+        align-items: flex-start;
       }
+    }
 
-      label {
-        font-size: 16.8px;
-        color: #333;
-      }
+    label {
+      font-size: 16.8px;
+      color: #333;
     }
   }
+}
 </style>

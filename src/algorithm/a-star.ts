@@ -1,4 +1,4 @@
-import { CellState, CellType, type Cell } from "@/types/Cell";
+import { CellState, CellType } from "@/types/Cell";
 import type { Grid } from "@/types/Grid";
 import { cloneDeep } from "lodash";
 

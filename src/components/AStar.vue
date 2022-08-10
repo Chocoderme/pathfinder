@@ -172,191 +172,188 @@
 </template>
 
 <script lang="ts" setup>
-  import { useAStar } from "@/algorithm/a-star.js";
-  import { useGridStore } from "@/stores/grid.js";
-  import { CellState } from "@/types/Cell.js";
-  import { QuestionFilled } from "@element-plus/icons-vue";
-  // import { ElMessage } from "element-plus";
+import { useAStar } from "@/algorithm/a-star.js";
+import { useGridStore } from "@/stores/grid.js";
+import { CellState } from "@/types/Cell.js";
+import { QuestionFilled } from "@element-plus/icons-vue";
+// import { ElMessage } from "element-plus";
 
-  const opts = reactive({
-    animate: true,
-    animationSpeed: 50,
-    canHorizontal: true,
-    canVertical: true,
-    canDiagonal: true,
-    canSwim: true,
-    canJump: true,
-    horizontalCost: 1,
-    verticalCost: 1,
-    diagonalCost: 1.8,
-    jumpCost: 1,
-    swimCost: 1,
+const opts = reactive({
+  animate: true,
+  animationSpeed: 50,
+  canHorizontal: true,
+  canVertical: true,
+  canDiagonal: true,
+  canSwim: true,
+  canJump: true,
+  horizontalCost: 1,
+  verticalCost: 1,
+  diagonalCost: 1.8,
+  jumpCost: 1,
+  swimCost: 1,
+});
+
+const gridStore = useGridStore();
+let astar: ReturnType<typeof useAStar> | undefined = undefined;
+const hasStarted = ref(false);
+const canStart = computed(() => gridStore.hasEnd && gridStore.hasStart);
+const hasFinished = ref(false);
+const canPrevious = ref(false);
+
+const {
+  resume,
+  pause,
+  isActive: isAnimating,
+} = useIntervalFn(
+  () => {
+    if (hasFinished.value) {
+      pause();
+    }
+    nextStep();
+  },
+  toRef(opts, "animationSpeed"),
+  { immediate: false }
+);
+
+const startAlgorithm = () => {
+  if (!gridStore.grid) return;
+  gridStore.canPlace = false;
+  hasStarted.value = true;
+  astar = useAStar(gridStore.grid, {
+    canHorizontal: opts.canHorizontal,
+    canVertical: opts.canVertical,
+    canDiagonal: opts.canDiagonal,
+    canSwim: opts.canSwim,
+    canJump: opts.canJump,
+    diagonalCost: opts.diagonalCost,
+    verticalCost: opts.verticalCost,
+    horizontalCost: opts.horizontalCost,
+    jumpCost: opts.jumpCost,
+    swimCost: opts.swimCost,
   });
+  gridStore.grid = astar.next();
+  if (opts.animate) resume();
+};
 
-  const gridStore = useGridStore();
-  let astar: ReturnType<typeof useAStar> | undefined = undefined;
-  const hasStarted = ref(false);
-  const canStart = computed(() => gridStore.hasEnd && gridStore.hasStart);
-  const hasFinished = ref(false);
-  const canPrevious = ref(false);
-
-  const {
-    resume,
-    pause,
-    isActive: isAnimating,
-  } = useIntervalFn(
-    () => {
-      if (hasFinished.value) {
-        pause();
-      }
-      nextStep();
-    },
-    toRef(opts, "animationSpeed"),
-    { immediate: false }
-  );
-
-  const startAlgorithm = () => {
-    if (!gridStore.grid) return;
-    gridStore.canPlace = false;
-    hasStarted.value = true;
-    astar = useAStar(gridStore.grid, {
-      canHorizontal: opts.canHorizontal,
-      canVertical: opts.canVertical,
-      canDiagonal: opts.canDiagonal,
-      canSwim: opts.canSwim,
-      canJump: opts.canJump,
-      diagonalCost: opts.diagonalCost,
-      verticalCost: opts.verticalCost,
-      horizontalCost: opts.horizontalCost,
-      jumpCost: opts.jumpCost,
-      swimCost: opts.swimCost,
-    });
-    gridStore.grid = astar.next();
-    if (opts.animate) resume();
-  };
-
-  const previousStep = () => {
-    if (!hasStarted.value || !astar) return;
-    const result = astar.previous();
-    if (!result) {
-      // Algorithm finished
-      canPrevious.value = false;
-      return;
-    }
-    hasFinished.value = false;
-    gridStore.grid = result;
-    if (!result.flat(1).some((n) => n[1] === CellState.EXPLORING)) {
-      canPrevious.value = false;
-    }
-  };
-
-  const nextStep = () => {
-    if (!hasStarted.value || !astar) return;
-    const result = astar.next();
-    if (!result) {
-      // Algorithm finished
-      hasFinished.value = true;
-      return;
-    }
-    canPrevious.value = true;
-    gridStore.grid = result;
-    if (result.flat(1).some((n) => n[1] === CellState.SELECTED)) {
-      gridStore.cost = astar.result()?.gScore;
-      hasFinished.value = true;
-    }
-  };
-
-  const reset = () => {
-    if (!hasStarted.value || !astar) return;
-    gridStore.grid = astar.reset();
-    hasFinished.value = false;
+const previousStep = () => {
+  if (!hasStarted.value || !astar) return;
+  const result = astar.previous();
+  if (!result) {
+    // Algorithm finished
     canPrevious.value = false;
-    astar = undefined;
-    hasStarted.value = false;
-    gridStore.canPlace = true;
-    gridStore.cost = undefined;
-  };
+    return;
+  }
+  hasFinished.value = false;
+  gridStore.grid = result;
+  if (!result.flat(1).some((n) => n[1] === CellState.EXPLORING)) {
+    canPrevious.value = false;
+  }
+};
 
-  const solve = async () => {
-    if (!hasStarted.value || !astar) return;
-    gridStore.grid = await astar.solve();
+const nextStep = () => {
+  if (!hasStarted.value || !astar) return;
+  const result = astar.next();
+  if (!result) {
+    // Algorithm finished
+    hasFinished.value = true;
+    return;
+  }
+  canPrevious.value = true;
+  gridStore.grid = result;
+  if (result.flat(1).some((n) => n[1] === CellState.SELECTED)) {
     gridStore.cost = astar.result()?.gScore;
     hasFinished.value = true;
-    canPrevious.value = true;
-  };
+  }
+};
 
-  const { arrowleft, arrowright, space } = useMagicKeys();
-  whenever(arrowleft, () => {
-    if (hasStarted.value && !isAnimating.value && canPrevious.value)
-      previousStep();
-  });
-  whenever(arrowright, () => {
-    if (hasStarted.value && !isAnimating.value && !hasFinished.value)
-      nextStep();
-  });
-  whenever(space, () => {
-    if (!hasStarted.value) {
-      if (canStart.value) startAlgorithm();
-      return;
-    }
-    if (hasFinished.value) {
-      reset();
-      return;
-    }
-    if (isAnimating.value) pause();
-    else resume();
-  });
-  whenever(hasFinished, () => {
-    if (!gridStore.grid) return;
-    if (
-      !gridStore.grid.flat(1).some((cell) => cell[1] === CellState.SELECTED)
-    ) {
-      ElMessage({
-        message: "No solution found!",
-        type: "error",
-        showClose: false,
-        icon: undefined,
-        grouping: true,
-      });
-    }
-  });
+const reset = () => {
+  if (!hasStarted.value || !astar) return;
+  gridStore.grid = astar.reset();
+  hasFinished.value = false;
+  canPrevious.value = false;
+  astar = undefined;
+  hasStarted.value = false;
+  gridStore.canPlace = true;
+  gridStore.cost = undefined;
+};
+
+const solve = async () => {
+  if (!hasStarted.value || !astar) return;
+  gridStore.grid = await astar.solve();
+  gridStore.cost = astar.result()?.gScore;
+  hasFinished.value = true;
+  canPrevious.value = true;
+};
+
+const { arrowleft, arrowright, space } = useMagicKeys();
+whenever(arrowleft, () => {
+  if (hasStarted.value && !isAnimating.value && canPrevious.value)
+    previousStep();
+});
+whenever(arrowright, () => {
+  if (hasStarted.value && !isAnimating.value && !hasFinished.value) nextStep();
+});
+whenever(space, () => {
+  if (!hasStarted.value) {
+    if (canStart.value) startAlgorithm();
+    return;
+  }
+  if (hasFinished.value) {
+    reset();
+    return;
+  }
+  if (isAnimating.value) pause();
+  else resume();
+});
+whenever(hasFinished, () => {
+  if (!gridStore.grid) return;
+  if (!gridStore.grid.flat(1).some((cell) => cell[1] === CellState.SELECTED)) {
+    ElMessage({
+      message: "No solution found!",
+      type: "error",
+      showClose: false,
+      icon: undefined,
+      grouping: true,
+    });
+  }
+});
 </script>
 
 <style lang="scss" scoped>
-  h1 {
-    user-select: none;
+h1 {
+  user-select: none;
+}
+
+.options {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  :deep(.el-checkbox) {
+    height: 20px;
   }
 
-  .options {
-    margin-top: 10px;
+  .option {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: space-between;
+    align-items: center;
 
-    :deep(.el-checkbox) {
-      height: 20px;
-    }
-
-    .option {
+    .group {
       display: flex;
       flex-direction: row;
       gap: 10px;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
+    }
 
-      .group {
-        display: flex;
-        flex-direction: row;
-        gap: 10px;
-        justify-content: flex-start;
-        align-items: center;
-      }
-
-      .label {
-        color: #666;
-        font-size: 12px;
-        margin-right: 5px;
-      }
+    .label {
+      color: #666;
+      font-size: 12px;
+      margin-right: 5px;
     }
   }
+}
 </style>

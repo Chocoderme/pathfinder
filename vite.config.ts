@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /// <reference types="./env" />
 import { fileURLToPath, URL } from "node:url";
 

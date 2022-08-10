@@ -11,6 +11,7 @@ module.exports = {
     "./.eslintrc-auto-import.json",
   ],
   rules: {
-    "linebreak-style": "windows",
+    "linebreak-style": 0,
+    "vue/multi-word-component-names": 0,
   },
 };
