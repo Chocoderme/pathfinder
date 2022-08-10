@@ -7,6 +7,8 @@ export type AStarOptions = {
   verticalCost?: number; // default: 1;
   diagonalCost?: number; // default: 1;
   jumpCost?: number; // default: 1;
+  canHorizontal?: boolean; // default: true;
+  canVertical?: boolean; // default: true;
   canDiagonal?: boolean; // default: true;
   canJump?: boolean; // default: true;
   swimCost?: number; // default: 2;
@@ -26,6 +28,8 @@ type ANode = {
 
 function buildOptions(options?: AStarOptions): AStartBuiltOptions {
   return {
+    canHorizontal: options?.canHorizontal ?? true,
+    canVertical: options?.canVertical ?? true,
     canDiagonal: options?.canDiagonal ?? true,
     canJump: options?.canJump ?? true,
     horizontalCost: options?.horizontalCost ?? 1,
@@ -71,55 +75,59 @@ function findNeighboors(
   const gridMaxX = grid[0].length;
 
   // Horizontal movements
-  if (parent.x > 0) {
-    neighboors.push({
-      x: parent.x - 1,
-      y: parent.y,
-      cameFrom: parent,
-      gScore: parent.gScore + opts.horizontalCost,
-      fScore:
-        parent.gScore +
-        opts.horizontalCost +
-        h(grid, { x: parent.x - 1, y: parent.y }, opts),
-    });
-  }
-  if (parent.x < gridMaxX - 1) {
-    neighboors.push({
-      x: parent.x + 1,
-      y: parent.y,
-      cameFrom: parent,
-      gScore: parent.gScore + opts.horizontalCost,
-      fScore:
-        parent.gScore +
-        opts.horizontalCost +
-        h(grid, { x: parent.x + 1, y: parent.y }, opts),
-    });
+  if (opts.canHorizontal) {
+    if (parent.x > 0) {
+      neighboors.push({
+        x: parent.x - 1,
+        y: parent.y,
+        cameFrom: parent,
+        gScore: parent.gScore + opts.horizontalCost,
+        fScore:
+          parent.gScore +
+          opts.horizontalCost +
+          h(grid, { x: parent.x - 1, y: parent.y }, opts),
+      });
+    }
+    if (parent.x < gridMaxX - 1) {
+      neighboors.push({
+        x: parent.x + 1,
+        y: parent.y,
+        cameFrom: parent,
+        gScore: parent.gScore + opts.horizontalCost,
+        fScore:
+          parent.gScore +
+          opts.horizontalCost +
+          h(grid, { x: parent.x + 1, y: parent.y }, opts),
+      });
+    }
   }
 
   // Vertical movements
-  if (parent.y > 0) {
-    neighboors.push({
-      x: parent.x,
-      y: parent.y - 1,
-      cameFrom: parent,
-      gScore: parent.gScore + opts.verticalCost,
-      fScore:
-        parent.gScore +
-        opts.verticalCost +
-        h(grid, { x: parent.x, y: parent.y - 1 }, opts),
-    });
-  }
-  if (parent.y < gridMaxY - 1) {
-    neighboors.push({
-      x: parent.x,
-      y: parent.y + 1,
-      cameFrom: parent,
-      gScore: parent.gScore + opts.verticalCost,
-      fScore:
-        parent.gScore +
-        opts.verticalCost +
-        h(grid, { x: parent.x, y: parent.y + 1 }, opts),
-    });
+  if (opts.canVertical) {
+    if (parent.y > 0) {
+      neighboors.push({
+        x: parent.x,
+        y: parent.y - 1,
+        cameFrom: parent,
+        gScore: parent.gScore + opts.verticalCost,
+        fScore:
+          parent.gScore +
+          opts.verticalCost +
+          h(grid, { x: parent.x, y: parent.y - 1 }, opts),
+      });
+    }
+    if (parent.y < gridMaxY - 1) {
+      neighboors.push({
+        x: parent.x,
+        y: parent.y + 1,
+        cameFrom: parent,
+        gScore: parent.gScore + opts.verticalCost,
+        fScore:
+          parent.gScore +
+          opts.verticalCost +
+          h(grid, { x: parent.x, y: parent.y + 1 }, opts),
+      });
+    }
   }
 
   // diagonal movements
@@ -296,13 +304,13 @@ function next(
     },
     {
       cameFrom: undefined,
-      x: 0,
+      x: -1,
       y: 0,
       fScore: Number.POSITIVE_INFINITY,
       gScore: Number.POSITIVE_INFINITY,
     }
   );
-  if (nextCheapestNode) {
+  if (nextCheapestNode && nextCheapestNode.x !== -1) {
     grid[nextCheapestNode.y][nextCheapestNode.x][1] = CellState.EXPLORING_NEXT;
   }
 
