@@ -16,9 +16,6 @@
       custom-class="keyboard-shortcuts-help-dialog"
     >
       <ul class="shortcuts">
-        <li>
-          {{ keys }}
-        </li>
         <li class="shortcut">
           <div class="keys">
             <div>
