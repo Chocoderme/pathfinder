@@ -17,9 +17,9 @@
         @contextmenu="handleRightClick($event, x, y)"
       ></div>
     </div>
-    <div class="coordinates" v-if="mouseGridCoordinates">
+    <!-- <div class="coordinates" v-if="mouseGridCoordinates">
       [{{ mouseGridCoordinates.x }};{{ mouseGridCoordinates.y }}]
-    </div>
+    </div> -->
   </div>
 </template>
 

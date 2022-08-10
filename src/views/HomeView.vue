@@ -9,6 +9,7 @@
     <ControlWindow storage-key="algorithm-window-position" :offset="{ y: 100 }">
       <AStar />
     </ControlWindow>
+    <KeyboardShortcutsHelp />
   </main>
 </template>
 
