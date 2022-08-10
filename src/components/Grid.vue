@@ -15,7 +15,11 @@
         @pointerdown="handlePointerDown($event, x, y)"
         @pointerup="handlePointerUp"
         @contextmenu="handleRightClick($event, x, y)"
-      ></div>
+      >
+        <span class="cost" v-if="cell[0] === CellType.END && gridStore.cost">{{
+          Math.round(gridStore.cost * 10) / 10
+        }}</span>
+      </div>
     </div>
     <!-- <div class="coordinates" v-if="mouseGridCoordinates">
       [{{ mouseGridCoordinates.x }};{{ mouseGridCoordinates.y }}]
@@ -323,6 +327,23 @@
       user-select: none;
       touch-action: none;
       transition: transform 0.1s ease-in-out;
+      position: relative;
+
+      .cost {
+        position: absolute;
+        inset: 3px;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-weight: bold;
+        font-size: 9px;
+        white-space: break-word;
+        line-break: anywhere;
+        box-sizing: border-box;
+        flex-wrap: wrap;
+      }
 
       &:first-child {
         border-left: none;

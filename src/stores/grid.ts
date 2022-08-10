@@ -8,6 +8,7 @@ export const useGridStore = defineStore({
     grid: undefined as undefined | Grid,
     canPlace: true,
     placing: CellType.START,
+    cost: undefined as undefined | number,
   }),
   getters: {
     rowSize(state) {

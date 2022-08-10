@@ -328,6 +328,7 @@ export const useAStar = (grid: Grid, options?: AStarOptions) => {
   let openNodes: ANode[] = [];
   let visitedNodes: ANode[] = [];
   let finished = false;
+  let endNode: ANode | undefined = undefined;
 
   const _reset = () => {
     finished = false;
@@ -336,6 +337,7 @@ export const useAStar = (grid: Grid, options?: AStarOptions) => {
       openNodes = previousStates[0].openNodes;
       visitedNodes = previousStates[0].visitedNodes;
       previousStates = [];
+      endNode = undefined;
     }
     return cloneDeep(_grid);
   };
@@ -347,6 +349,7 @@ export const useAStar = (grid: Grid, options?: AStarOptions) => {
     _grid = prev.grid;
     openNodes = prev.openNodes;
     visitedNodes = prev.visitedNodes;
+    endNode = undefined;
     finished = false;
     return cloneDeep(_grid);
   };
@@ -363,6 +366,9 @@ export const useAStar = (grid: Grid, options?: AStarOptions) => {
     });
     const r = next(_grid, openNodes, visitedNodes, opts);
     if (r === false || typeof r !== "boolean") {
+      if (typeof r !== "boolean") {
+        endNode = r;
+      }
       finished = true;
     }
     return cloneDeep(_grid);
@@ -382,5 +388,6 @@ export const useAStar = (grid: Grid, options?: AStarOptions) => {
     previous: _previous,
     next: _next,
     solve: _solve,
+    result: () => endNode,
   };
 };

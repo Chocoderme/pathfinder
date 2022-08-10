@@ -261,6 +261,7 @@
     canPrevious.value = true;
     gridStore.grid = result;
     if (result.flat(1).some((n) => n[1] === CellState.SELECTED)) {
+      gridStore.cost = astar.result()?.gScore;
       hasFinished.value = true;
     }
   };
@@ -273,11 +274,13 @@
     astar = undefined;
     hasStarted.value = false;
     gridStore.canPlace = true;
+    gridStore.cost = undefined;
   };
 
   const solve = async () => {
     if (!hasStarted.value || !astar) return;
     gridStore.grid = await astar.solve();
+    gridStore.cost = astar.result()?.gScore;
     hasFinished.value = true;
     canPrevious.value = true;
   };
