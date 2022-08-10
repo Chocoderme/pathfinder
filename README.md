@@ -1,6 +1,6 @@
-# pathfinder
+# Pathfinder
 
-This template should help get you started developing with Vue 3 in Vite.
+Simple vue3 made website to visualize pathfinding algorithms [live demo](http://zwertv.fr/path-finder/)
 
 ## Recommended IDE Setup
 
